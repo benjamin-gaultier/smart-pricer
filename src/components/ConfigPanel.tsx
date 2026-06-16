@@ -1,9 +1,11 @@
-import type { Factors } from '../domain/types'
+import type { Factors, Target } from '../domain/types'
 import { MONTHS, WEEKDAYS, DEFAULT_FACTORS } from '../lib/defaultFactors'
 
 type Props = {
   factors: Factors
   onChange: (f: Factors) => void
+  onSuggest?: () => void
+  suggestTarget: Target
 }
 
 const card = 'rounded-lg border border-gray-200 bg-white p-4'
@@ -11,7 +13,7 @@ const label = 'block text-xs font-medium text-gray-500 mb-1'
 const input =
   'w-full rounded border border-gray-300 px-2 py-1 text-sm focus:border-gray-500 focus:outline-none'
 
-export function ConfigPanel({ factors, onChange }: Props) {
+export function ConfigPanel({ factors, onChange, onSuggest, suggestTarget }: Props) {
   const patch = (p: Partial<Factors>) => onChange({ ...factors, ...p })
   const setArr = (key: 'seasonal' | 'dow', i: number, v: number) => {
     const next = [...factors[key]]
@@ -25,13 +27,32 @@ export function ConfigPanel({ factors, onChange }: Props) {
         <p className="text-sm text-gray-500">
           Copy these from PriceLabs' UI. Multipliers stack on the base price.
         </p>
-        <button
-          type="button"
-          className="rounded border border-gray-300 px-3 py-1 text-sm hover:bg-gray-100"
-          onClick={() => onChange(DEFAULT_FACTORS)}
-        >
-          Reset to defaults
-        </button>
+        <div className="flex gap-2">
+          {onSuggest && (
+            <button
+              type="button"
+              title={`Fit base/seasonal/day-of-week from the uploaded ${suggestTarget === 'default' ? 'Default' : 'Final'} prices (neutralizes lead-time & occupancy)`}
+              className="rounded border border-blue-300 bg-blue-50 px-3 py-1 text-sm text-blue-800 hover:bg-blue-100"
+              onClick={() => {
+                if (
+                  confirm(
+                    `Overwrite base, min/max, seasonal and day-of-week with a fit from the ${suggestTarget === 'default' ? 'Default' : 'Final'} prices? Lead-time and occupancy curves will be cleared.`,
+                  )
+                )
+                  onSuggest()
+              }}
+            >
+              Suggest from data
+            </button>
+          )}
+          <button
+            type="button"
+            className="rounded border border-gray-300 px-3 py-1 text-sm hover:bg-gray-100"
+            onClick={() => onChange(DEFAULT_FACTORS)}
+          >
+            Reset to defaults
+          </button>
+        </div>
       </div>
 
       <div className={card}>

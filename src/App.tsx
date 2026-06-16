@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { parseCsv } from './domain/parseCsv'
 import { compareAll, manualOverrideStats } from './domain/accuracy'
+import { fitFactors } from './domain/fitFactors'
 import type { DayRow, Target } from './domain/types'
 import { useLocalStorage } from './lib/useLocalStorage'
 import { DEFAULT_FACTORS } from './lib/defaultFactors'
@@ -109,7 +110,16 @@ export default function App() {
             Upload a PriceLabs CSV export to begin.
           </div>
         ) : tab === 'config' ? (
-          <ConfigPanel factors={factors} onChange={setFactors} />
+          <ConfigPanel
+            factors={factors}
+            onChange={setFactors}
+            onSuggest={
+              hasData
+                ? () => setFactors(fitFactors(calendar, target, factors))
+                : undefined
+            }
+            suggestTarget={target}
+          />
         ) : tab === 'accuracy' ? (
           <AccuracyView
             comparisons={comparisons}

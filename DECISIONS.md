@@ -126,6 +126,17 @@ error is visible and tunable. With *untuned* defaults both score ~13.5% MAPE
 not before. `ADR Last Year` remains unused (mostly empty in forward rows).
 **Status: adopted, implemented (toggle defaults to Final).**
 
+**17. "Suggest from data" seeds base/seasonal/dow by fitting the target prices.**
+→ A multiplicative two-factor fit (alternating geometric means, seasonal & dow
+normalized to geomean 1 so base carries the level). Lead-time & occupancy are
+**neutralized** (one snapshot can't separate lead-time from seasonality); min/max
+set to the observed price range so they don't clip.
+→ *Why:* gives a data-driven starting point instead of hand-transcribing every
+number. It's a *seed*, not a replacement for copy-from-UI (decision #5 stands).
+On the 2026-06-16 Default prices it cut MAPE 13.4% → **8.4%** (within-5% 24% →
+40%). The residual 8.4% is the neutralized curves + PriceLabs' demand signal.
+**Status: adopted, implemented (button in Config, overwrites with confirm).**
+
 ---
 
 ## Explicitly deferred (do NOT build yet)
