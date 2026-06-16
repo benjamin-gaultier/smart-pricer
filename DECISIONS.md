@@ -115,6 +115,19 @@ to a private repo. **Status: adopted.**
 
 ---
 
+**16. Add a Final ⇄ Default target toggle; keep Final as default target.**
+→ The CSV's `Price with Default Customization` is PriceLabs' *algorithmic* price;
+`Final Price` = that + the host's manual overrides. In the 2026-06-16 export the
+two differ on **44% of dates, mean 4.0%** (€24).
+→ *Why:* targeting Final imposes a ~4% accuracy floor (manual tweaks aren't
+predictable from factors). Targeting Default strips that noise so true factor
+error is visible and tunable. With *untuned* defaults both score ~13.5% MAPE
+(factor error dominates), so the toggle's value is realized **during tuning**,
+not before. `ADR Last Year` remains unused (mostly empty in forward rows).
+**Status: adopted, implemented (toggle defaults to Final).**
+
+---
+
 ## Explicitly deferred (do NOT build yet)
 
 - Channel-manager **write** integration + backend + daily cron (Phase 2).

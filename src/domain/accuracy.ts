@@ -1,5 +1,5 @@
 import { computePrice } from './computePrice'
-import type { DayRow, Factors } from './types'
+import type { DayRow, Factors, Target } from './types'
 
 export type Comparison = {
   date: string
@@ -18,23 +18,50 @@ export type Summary = {
   threshold: number
 }
 
+const targetPrice = (row: DayRow, target: Target): number =>
+  target === 'default' ? (row.defaultPrice ?? row.finalPrice) : row.finalPrice
+
 export function compareAll(
   calendar: DayRow[],
   factors: Factors,
   snapshotDate: string,
+  target: Target = 'final',
 ): Comparison[] {
   return calendar.map((row) => {
     const ours = computePrice(row.date, factors, calendar, snapshotDate).price
-    const delta = ours - row.finalPrice
+    const theirs = targetPrice(row, target)
+    const delta = ours - theirs
     return {
       date: row.date,
       ours,
-      theirs: row.finalPrice,
+      theirs,
       delta,
-      pctErr: row.finalPrice === 0 ? 0 : delta / row.finalPrice,
+      pctErr: theirs === 0 ? 0 : delta / theirs,
       available: row.available,
     }
   })
+}
+
+/**
+ * How much the host's manual overrides move Final away from PriceLabs' algorithmic
+ * (Default) price — the irreducible floor when targeting Final.
+ */
+export function manualOverrideStats(calendar: DayRow[]): {
+  pctOfDates: number
+  meanAbsPct: number
+} {
+  let n = 0
+  let differ = 0
+  let absPct = 0
+  for (const row of calendar) {
+    if (row.defaultPrice == null || row.defaultPrice === 0) continue
+    n++
+    if (row.finalPrice !== row.defaultPrice) differ++
+    absPct += Math.abs(row.finalPrice - row.defaultPrice) / row.defaultPrice
+  }
+  return n === 0
+    ? { pctOfDates: 0, meanAbsPct: 0 }
+    : { pctOfDates: differ / n, meanAbsPct: absPct / n }
 }
 
 export function summarize(comparisons: Comparison[], threshold = 0.05): Summary {

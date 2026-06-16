@@ -25,6 +25,7 @@ export function parseCsv(csvText: string): DayRow[] {
     rows.push({
       date,
       finalPrice,
+      defaultPrice: num(r['Price with Default Customization']),
       available: r['Available']?.trim().toLowerCase() === 'true',
       minStay: num(r['Min Stay']) ?? 1,
       adrLastYear: num(r['ADR Last Year']),

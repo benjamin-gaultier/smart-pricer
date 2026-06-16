@@ -9,17 +9,45 @@ import {
 } from 'recharts'
 import type { Comparison } from '../domain/accuracy'
 import { summarize } from '../domain/accuracy'
+import type { Target } from '../domain/types'
 
-type Props = { comparisons: Comparison[] }
+type Props = {
+  comparisons: Comparison[]
+  target: Target
+  overrides: { pctOfDates: number; meanAbsPct: number }
+}
 
 const stat = 'rounded-lg border border-gray-200 bg-white p-4'
 
-export function AccuracyView({ comparisons }: Props) {
+export function AccuracyView({ comparisons, target, overrides }: Props) {
   const [threshold, setThreshold] = useState(0.05)
   const s = summarize(comparisons, threshold)
 
   return (
     <div className="space-y-4">
+      <p className="text-sm text-gray-600">
+        Comparing against PriceLabs{' '}
+        <span className="font-medium">
+          {target === 'final' ? 'Final Price' : 'Default (algorithmic) price'}
+        </span>
+        .
+      </p>
+
+      {target === 'final' && overrides.pctOfDates > 0 && (
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
+          Your manual overrides move Final off the algorithmic price on{' '}
+          <span className="font-medium">
+            {(overrides.pctOfDates * 100).toFixed(0)}%
+          </span>{' '}
+          of dates (mean{' '}
+          <span className="font-medium">
+            {(overrides.meanAbsPct * 100).toFixed(1)}%
+          </span>
+          ). That's an accuracy floor when targeting Final — switch to{' '}
+          <span className="font-medium">vs Default</span> to see true factor error.
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <div className={stat}>
           <div className="text-xs text-gray-500">Dates compared</div>

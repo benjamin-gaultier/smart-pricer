@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { parseCsv } from './domain/parseCsv'
-import { compareAll } from './domain/accuracy'
-import type { DayRow } from './domain/types'
+import { compareAll, manualOverrideStats } from './domain/accuracy'
+import type { DayRow, Target } from './domain/types'
 import { useLocalStorage } from './lib/useLocalStorage'
 import { DEFAULT_FACTORS } from './lib/defaultFactors'
 import { ConfigPanel } from './components/ConfigPanel'
@@ -24,10 +24,14 @@ export default function App() {
   const [calendar, setCalendar] = useLocalStorage<DayRow[]>('calendar', [])
   const [tab, setTab] = useState<Tab>('heatmap')
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [target, setTarget] = useState<Target>('final')
 
   const snapshotDate = calendar[0]?.date ?? ''
   const comparisons =
-    calendar.length > 0 ? compareAll(calendar, factors, snapshotDate) : []
+    calendar.length > 0
+      ? compareAll(calendar, factors, snapshotDate, target)
+      : []
+  const overrides = manualOverrideStats(calendar)
 
   const onUpload = async (file: File) => {
     const rows = parseCsv(await file.text())
@@ -53,18 +57,37 @@ export default function App() {
               {snapshotDate && ` · snapshot ${snapshotDate}`}
             </p>
           </div>
-          <label className="cursor-pointer rounded border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-100">
-            Upload PriceLabs CSV
-            <input
-              type="file"
-              accept=".csv"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0]
-                if (f) onUpload(f)
-              }}
-            />
-          </label>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center rounded border border-gray-300 text-sm">
+              {(['final', 'default'] as Target[]).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setTarget(t)}
+                  title={
+                    t === 'final'
+                      ? 'PriceLabs Final Price (algorithm + your manual overrides)'
+                      : 'PriceLabs algorithmic price before your manual overrides'
+                  }
+                  className={`px-3 py-1.5 first:rounded-l last:rounded-r ${target === t ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                >
+                  {t === 'final' ? 'vs Final' : 'vs Default'}
+                </button>
+              ))}
+            </div>
+            <label className="cursor-pointer rounded border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-100">
+              Upload PriceLabs CSV
+              <input
+                type="file"
+                accept=".csv"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0]
+                  if (f) onUpload(f)
+                }}
+              />
+            </label>
+          </div>
         </div>
         <nav className="mt-3 flex gap-1">
           {TABS.map((t) => (
@@ -88,7 +111,11 @@ export default function App() {
         ) : tab === 'config' ? (
           <ConfigPanel factors={factors} onChange={setFactors} />
         ) : tab === 'accuracy' ? (
-          <AccuracyView comparisons={comparisons} />
+          <AccuracyView
+            comparisons={comparisons}
+            target={target}
+            overrides={overrides}
+          />
         ) : tab === 'residual' ? (
           <ResidualView comparisons={comparisons} />
         ) : tab === 'heatmap' ? (

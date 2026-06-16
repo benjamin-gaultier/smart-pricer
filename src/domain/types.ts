@@ -1,11 +1,15 @@
 /** One day of the PriceLabs export for the Entire-place listing. */
 export type DayRow = {
   date: string // ISO yyyy-mm-dd
-  finalPrice: number // PriceLabs' pushed price — our reproduction target
+  finalPrice: number // PriceLabs' pushed price (algorithm + host manual overrides)
+  defaultPrice: number | null // PriceLabs' algorithmic price before manual overrides
   available: boolean // false = booked/blocked
   minStay: number
   adrLastYear: number | null // last-year average daily rate, if present
 }
+
+/** Which PriceLabs price we reproduce/score against. */
+export type Target = 'final' | 'default'
 
 /** Multiplicative pricing factors, copied from the PriceLabs UI. */
 export type Factors = {
