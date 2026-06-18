@@ -153,6 +153,22 @@ under-pricing peak nights by ~€400, which is where the host earns most. The ho
 enters their own events (we do not hardcode a calendar). **Status: adopted,
 implemented (Events editor in Config).**
 
+**19. Fit the short-horizon (≤14d) lead-time curve in the seeder; keep >14d neutral.**
+→ With a second snapshot filed (decision #10 paying off), the last-minute discount
+is now both *measurable* and *confirmed causal*: deseasonalized price/seed by
+days-out is **d0 0.63, d1 0.67, d2–3 0.78, d4–7 0.90, d8–14 0.92, then ~1.0**. The
+cross-snapshot panel proves it's lead-time not a date effect — every fixed target
+date drops as the snapshot advances toward it (e.g. 2026-06-18: €563→€493 −12%;
+06-19 −8%). A date-specific event wouldn't move; a last-minute discount does.
+→ *Why this overrides #10's collinearity caveat (only for the short horizon):* a
+last-minute discount is a sharp local dip against the smooth seasonal curve, so
+the ≤14d range is identifiable from one snapshot; the second snapshot confirmed
+it. The >14d range still shows no clean signal, so the seeder leaves it neutral.
+`fitFactors` now buckets the deseasonalized ratio into cutoffs [1,3,7,14]
+(≥2 rows/band, clamped 0.5–1.5). Impact: overall MAPE 8.4%→8.0%, but **≤14d MAPE
+collapses 18.4%→2.5%** — the dates the host can actually act on now. Occupancy
+stays neutralized. **Status: adopted, implemented.**
+
 ---
 
 ## Explicitly deferred (do NOT build yet)
