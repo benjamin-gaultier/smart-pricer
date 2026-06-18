@@ -23,6 +23,15 @@ const pickOccupancy = (curve: Factors['occupancy'], fill: number): number => {
   return 1
 }
 
+/** First event whose date range covers `date` (ISO strings compare correctly). */
+const pickEvent = (
+  events: Factors['events'],
+  date: string,
+): Factors['events'][number] | null => {
+  for (const e of events) if (date >= e.from && date <= e.to) return e
+  return null
+}
+
 /** Fraction of unavailable (booked/blocked) days in a window around `date`. */
 export function localFill(date: string, calendar: DayRow[]): number {
   const center = parseDate(date).getTime()
@@ -54,11 +63,17 @@ export function computePrice(
   const daysOut = daysBetween(snapshotDate, date)
   const fill = localFill(date, calendar)
 
+  const event = pickEvent(factors.events ?? [], date)
+
   const factorList: { label: string; multiplier: number }[] = [
     { label: 'Seasonal', multiplier: factors.seasonal[month] ?? 1 },
     { label: 'Day of week', multiplier: factors.dow[weekday] ?? 1 },
     { label: 'Last-minute', multiplier: pickLeadtime(factors.leadtime, daysOut) },
     { label: 'Occupancy', multiplier: pickOccupancy(factors.occupancy, fill) },
+    {
+      label: event ? `Event: ${event.label}` : 'Event',
+      multiplier: event?.multiplier ?? 1,
+    },
   ]
 
   let running = factors.base

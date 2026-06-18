@@ -25,4 +25,5 @@ export const DEFAULT_FACTORS: Factors = {
     { maxFill: 0.7, multiplier: 1.0 },
     { maxFill: 1.0, multiplier: 1.08 },
   ],
+  events: [],
 }

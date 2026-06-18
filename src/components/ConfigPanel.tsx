@@ -141,6 +141,90 @@ export function ConfigPanel({ factors, onChange, onSuggest, suggestTarget }: Pro
           })
         }
       />
+
+      <EventEditor
+        events={factors.events ?? []}
+        onChange={(events) => patch({ events })}
+      />
+    </div>
+  )
+}
+
+function EventEditor({
+  events,
+  onChange,
+}: {
+  events: Factors['events']
+  onChange: (events: Factors['events']) => void
+}) {
+  const update = (i: number, p: Partial<Factors['events'][number]>) =>
+    onChange(events.map((e, j) => (j === i ? { ...e, ...p } : e)))
+  return (
+    <div className={card}>
+      <h3 className="mb-3 font-medium">
+        Events (× over a date range — holidays, fairs; first match wins)
+      </h3>
+      <div className="space-y-2">
+        {events.map((e, i) => (
+          <div key={i} className="flex items-end gap-2">
+            <div className="flex-1">
+              <span className={label}>label</span>
+              <input
+                className={input}
+                value={e.label}
+                onChange={(ev) => update(i, { label: ev.target.value })}
+              />
+            </div>
+            <div>
+              <span className={label}>from</span>
+              <input
+                type="date"
+                className={input}
+                value={e.from}
+                onChange={(ev) => update(i, { from: ev.target.value })}
+              />
+            </div>
+            <div>
+              <span className={label}>to</span>
+              <input
+                type="date"
+                className={input}
+                value={e.to}
+                onChange={(ev) => update(i, { to: ev.target.value })}
+              />
+            </div>
+            <div className="w-24">
+              <span className={label}>multiplier ×</span>
+              <input
+                type="number"
+                step="0.01"
+                className={input}
+                value={e.multiplier}
+                onChange={(ev) => update(i, { multiplier: Number(ev.target.value) })}
+              />
+            </div>
+            <button
+              type="button"
+              className="rounded border border-gray-300 px-2 py-1 text-sm hover:bg-gray-100"
+              onClick={() => onChange(events.filter((_, j) => j !== i))}
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          className="rounded border border-gray-300 px-3 py-1 text-sm hover:bg-gray-100"
+          onClick={() =>
+            onChange([
+              ...events,
+              { label: '', from: '', to: '', multiplier: 1.2 },
+            ])
+          }
+        >
+          + Add event
+        </button>
+      </div>
     </div>
   )
 }

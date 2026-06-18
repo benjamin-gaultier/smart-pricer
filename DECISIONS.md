@@ -137,13 +137,30 @@ On the 2026-06-16 Default prices it cut MAPE 13.4% → **8.4%** (within-5% 24% �
 40%). The residual 8.4% is the neutralized curves + PriceLabs' demand signal.
 **Status: adopted, implemented (button in Config, overwrites with confirm).**
 
+**18. Add a Tier-2 events overlay (date-range × multiplier), promoted from deferred.**
+→ After seeding (decision #17), the residual is **structural, not noise**: the
+biggest signed gaps cluster on the **New Year's week** (2026-12-27 → 2027-01-02,
+PriceLabs +39% to +80%; NYE €1025 vs our €619) plus apparent Paris events
+(2027-10-01→03, 2027-06-13/14), and a last-minute dip on the snapshot-edge dates
+(2026-06-16/17/19, −35%). Events are a per-date `{from,to,multiplier,label}`
+curve (first match wins), applied as the last step of the stack, defaulting to
+`[]` so existing behavior is unchanged.
+→ *Why now:* decision #7 said add Tier-2 "only where the residual shows
+systematic gaps" — it now clearly does. **Caveat:** the overlay moves aggregate
+MAPE only **8.4% → 7.8%** because the spikes are ~13 of 541 dates; MAPE weights
+all dates equally and so understates the value. The real payoff is not
+under-pricing peak nights by ~€400, which is where the host earns most. The host
+enters their own events (we do not hardcode a calendar). **Status: adopted,
+implemented (Events editor in Config).**
+
 ---
 
 ## Explicitly deferred (do NOT build yet)
 
 - Channel-manager **write** integration + backend + daily cron (Phase 2).
 - Room-vs-whole-apartment **allocation** optimization (Phase 3).
-- Tier-2 (holidays/events) and Tier-3 (paid comp-set) demand data.
+- Tier-2 events overlay shipped (#18); **auto-populating** holidays/events from a
+  calendar feed and Tier-3 (paid comp-set) remain deferred.
 - **Fitting** factors from snapshot history instead of copying from PriceLabs.
 - Tests (the owner tests manually first; tests added on request).
 - Mock data.

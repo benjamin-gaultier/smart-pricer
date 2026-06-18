@@ -24,6 +24,8 @@ export type Factors = {
   leadtime: { maxDaysOut: number; multiplier: number }[]
   /** Occupancy curve: applied when local fill rate <= maxFill (first match wins). */
   occupancy: { maxFill: number; multiplier: number }[]
+  /** Calendar events (holidays, fairs): applied when from <= date <= to (first match wins). */
+  events: { from: string; to: string; multiplier: number; label: string }[]
 }
 
 /** One step in the price breakdown, for the waterfall view. */
