@@ -204,6 +204,29 @@ being deleted host-side; it has no rows in our data, so nothing to strip.
 (MAPE understates peak nights — see #18), and use a time-based holdout once
 snapshots accumulate. **Status: adopted (direction); D implementation pending.**
 
+**21. First allocation (D) artifact: a Listings view + reserve signal from the
+"Stay Dates" occupancy panel.**
+→ New domain: `parseStayDates` (daily occupancy per listing) + `listingStats`
+(per-listing monthly occupancy/ADR) + `reserveSignal` (the core rule). The signal
+per month = whole-apartment realized ADR − Σ(room occupancy × room ADR); negative
+edge flags a *bad whole-apartment trade* (selling rooms would have earned more).
+New "Listings" tab with its own "Stay Dates" upload (different schema from the
+per-listing PriceLabs export), persisted in `localStorage` under `listings`.
+→ *Whole-apartment auto-detection:* by **peak single-night revenue**, NOT mean
+ADR. Mean ADR fails — the whole place's realized ADR (€106) is *below* Grande
+Chambre's (€117) because cheap whole bookings drag the average down. Peak nightly
+cleanly separates it (Whole €371 vs rooms €117/147/183). Avoids committing the
+private listing ids to source.
+→ *What it reveals (this is the novel, anti-PriceLabs insight):* the room reserve
+is only €49–€449/night depending on month, yet some historical whole bookings
+cleared *below* it — **bad trades in Jan/Jun/Jul/Nov/Dec** (e.g. Jun whole €50 vs
+€112 rooms; Dec €68 vs €110). So the whole-apartment floor should be set above the
+month's room reserve. PriceLabs prices the 4 listings independently and never
+surfaces this. **Caveat:** reserve uses *historical* room occupancy×ADR as the
+opportunity cost; it's an estimate, not a forward booking-probability (that needs
+C). Good enough to set floors; not yet a live allocator. **Status: adopted,
+implemented (Listings tab).**
+
 ---
 
 ## Explicitly deferred (do NOT build yet)

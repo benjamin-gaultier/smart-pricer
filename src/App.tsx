@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { parseCsv } from './domain/parseCsv'
+import { parseStayDates } from './domain/parseStayDates'
+import { listingStats } from './domain/listingStats'
+import type { ListingStats } from './domain/listingStats'
 import { compareAll, manualOverrideStats } from './domain/accuracy'
 import { fitFactors } from './domain/fitFactors'
 import type { DayRow, Target } from './domain/types'
@@ -10,19 +13,22 @@ import { AccuracyView } from './components/AccuracyView'
 import { HeatmapView } from './components/HeatmapView'
 import { WaterfallView } from './components/WaterfallView'
 import { ResidualView } from './components/ResidualView'
+import { ListingsView } from './components/ListingsView'
 
-type Tab = 'heatmap' | 'waterfall' | 'accuracy' | 'residual' | 'config'
+type Tab = 'heatmap' | 'waterfall' | 'accuracy' | 'residual' | 'listings' | 'config'
 const TABS: { id: Tab; label: string }[] = [
   { id: 'heatmap', label: 'Heatmap' },
   { id: 'waterfall', label: 'Waterfall' },
   { id: 'accuracy', label: 'Accuracy' },
   { id: 'residual', label: 'Residual' },
+  { id: 'listings', label: 'Listings' },
   { id: 'config', label: 'Config' },
 ]
 
 export default function App() {
   const [factors, setFactors] = useLocalStorage('factors', DEFAULT_FACTORS)
   const [calendar, setCalendar] = useLocalStorage<DayRow[]>('calendar', [])
+  const [listings, setListings] = useLocalStorage<ListingStats[]>('listings', [])
   const [tab, setTab] = useState<Tab>('heatmap')
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [target, setTarget] = useState<Target>('final')
@@ -38,6 +44,10 @@ export default function App() {
     const rows = parseCsv(await file.text())
     setCalendar(rows)
     setSelectedDate(rows[0]?.date ?? null)
+  }
+
+  const onUploadStayDates = async (file: File) => {
+    setListings(listingStats(parseStayDates(await file.text())))
   }
 
   const openWaterfall = (date: string) => {
@@ -59,7 +69,9 @@ export default function App() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center rounded border border-gray-300 text-sm">
+            <div
+              className={`flex items-center rounded border border-gray-300 text-sm ${tab === 'listings' ? 'hidden' : ''}`}
+            >
               {(['final', 'default'] as Target[]).map((t) => (
                 <button
                   key={t}
@@ -76,18 +88,33 @@ export default function App() {
                 </button>
               ))}
             </div>
-            <label className="cursor-pointer rounded border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-100">
-              Upload PriceLabs CSV
-              <input
-                type="file"
-                accept=".csv"
-                className="hidden"
-                onChange={(e) => {
-                  const f = e.target.files?.[0]
-                  if (f) onUpload(f)
-                }}
-              />
-            </label>
+            {tab === 'listings' ? (
+              <label className="cursor-pointer rounded border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-100">
+                Upload Stay Dates CSV
+                <input
+                  type="file"
+                  accept=".csv"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0]
+                    if (f) onUploadStayDates(f)
+                  }}
+                />
+              </label>
+            ) : (
+              <label className="cursor-pointer rounded border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-100">
+                Upload PriceLabs CSV
+                <input
+                  type="file"
+                  accept=".csv"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0]
+                    if (f) onUpload(f)
+                  }}
+                />
+              </label>
+            )}
           </div>
         </div>
         <nav className="mt-3 flex gap-1">
@@ -105,7 +132,15 @@ export default function App() {
       </header>
 
       <main className="mx-auto max-w-5xl px-6 py-6">
-        {!hasData && tab !== 'config' ? (
+        {tab === 'listings' ? (
+          listings.length > 0 ? (
+            <ListingsView stats={listings} />
+          ) : (
+            <div className="rounded-lg border border-dashed border-gray-300 bg-white p-10 text-center text-gray-500">
+              Upload a PriceLabs "Stay Dates" export to compare listings.
+            </div>
+          )
+        ) : !hasData && tab !== 'config' ? (
           <div className="rounded-lg border border-dashed border-gray-300 bg-white p-10 text-center text-gray-500">
             Upload a PriceLabs CSV export to begin.
           </div>
