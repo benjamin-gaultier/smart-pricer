@@ -169,12 +169,48 @@ it. The >14d range still shows no clean signal, so the seeder leaves it neutral.
 collapses 18.4%→2.5%** — the dates the host can actually act on now. Occupancy
 stays neutralized. **Status: adopted, implemented.**
 
+**20. Pivot reproduce → beat; C is forward-accumulation-only; D becomes the active
+workstream. PriceLabs analytics is a partial backfill for C.**
+→ Goal restated: shadow mode is now a *context-gathering phase with an exit
+condition*, not the end. PriceLabs stays the permanent **benchmark**; the factor
+stack becomes the interpretable **base layer** our own rules sit on. Layered
+engine: L0 base curve (today) → L1 demand corrections (C) → L2 allocation (D).
+→ *Reservation history is unavailable via any non-risky route.* Airbnb exposes no
+host reservation API; scraping is off the table (account earns ~€70k/yr, day-one
+constraint); channel-manager APIs (Beds24 etc.) are legitimate but Phase-2 and
+**don't backfill history**. So **C (pace/lead-time model) can't be built from
+history** — it accrues forward via daily snapshot diffs (a night flipping
+`Available: True→False` = a booking event at a known price/lead-time). C is
+parked, fed passively; revisit once snapshots accumulate.
+→ *But PriceLabs Portfolio Analytics (the May-27 PDF) already shows the
+reservation-derived aggregates we wanted:* **avg booking window 41 days**, a
+booking-window histogram (mode 1–2 months; 7–13d:18, 2–4wk:20, 1–2mo:28,
+2–4mo:20 booked-nights), LOS distribution, and per-listing occupancy/ADR. It's
+aggregate (PDF, not per-booking) so it can't drive a row-level model, but it
+*validates* the lead-time shape and is a cheap sanity check. PriceLabs clearly
+holds the underlying booking-creation data — a future export path worth probing.
+→ *D is now active — and we have enough data for it.* `Stay Dates.csv` gives 4.5
+yrs daily occupancy × all 4 listings; Portfolio Analytics confirms the thesis
+hard: **May 2026 occupancy — Small 96.7%, Medium 100%, Grande 82.6%, Entire place
+0% (last booked: N/A)**; ADR Small €85 / Medium €104 / Grande €115. The whole
+place is dormant by design (rooms out-earn it), exactly the "price it as a reserve
+option" setup. D needs realized occupancy by listing×date (in hand), not
+booking-made dates.
+→ *Inventory locked:* the 4 IDs in our data are the Paris inventory (3 rooms +
+"Entire place · Unique Garden House"). The standalone "unique garden house" in the
+earnings PDF (0 nights, €0) is a **stale duplicate** of the entire-place listing,
+being deleted host-side; it has no rows in our data, so nothing to strip.
+→ *Two rigor upgrades to apply as D is built:* revenue-/booking-weight the loss
+(MAPE understates peak nights — see #18), and use a time-based holdout once
+snapshots accumulate. **Status: adopted (direction); D implementation pending.**
+
 ---
 
 ## Explicitly deferred (do NOT build yet)
 
 - Channel-manager **write** integration + backend + daily cron (Phase 2).
-- Room-vs-whole-apartment **allocation** optimization (Phase 3).
+- Room-vs-whole **allocation** (D) is now the **active workstream** (#20), no
+  longer deferred. The demand/pace model (C) is parked but fed by daily snapshots.
 - Tier-2 events overlay shipped (#18); **auto-populating** holidays/events from a
   calendar feed and Tier-3 (paid comp-set) remain deferred.
 - **Fitting** factors from snapshot history instead of copying from PriceLabs.
